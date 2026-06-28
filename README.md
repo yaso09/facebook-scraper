@@ -363,13 +363,60 @@ Yanıt:
 }
 ```
 
+**POST `/api/profile`** — Profil kazıma işlemi başlatır.
+
+```bash
+curl -X POST https://your-app.vercel.app/api/profile \
+  -H "x-api-key: your-secret-key" \
+  -H "Content-Type: application/json" \
+  -d '{"account": "zuck"}'
+```
+
+İsteğe bağlı parametreler:
+- `cookies` — Oturum çerezleri (string, array veya `{ file: '...' }`)
+
+Yanıt:
+```json
+{ "jobId": "uuid-string", "status": "queued" }
+```
+
+**GET `/api/profile/:jobId`** — İşlem sonucunu sorgular.
+
+```bash
+curl https://your-app.vercel.app/api/profile/uuid-string \
+  -H "x-api-key: your-secret-key"
+```
+
+Yanıt:
+```json
+{
+  "jobId": "uuid-string",
+  "status": "completed",
+  "data": {
+    "account": "zuck",
+    "profile": {
+      "name": "Mark Zuckerberg",
+      "sections": [...],
+      "id": "4"
+    },
+    "scrapedAt": "2026-06-23T12:00:00Z",
+    "elapsedSeconds": 5
+  }
+}
+```
+
 **GET `/health`** — Sağlık kontrolü.
 
 ### Kullanım Akışı
 
-1. `POST /api/comments` ile kazıma işlemini başlatın → `jobId` alırsınız
+1. `POST /api/comments` ile yorum kazıma işlemini başlatın → `jobId` alırsınız
 2. `GET /api/comments/:jobId` ile her 2-3 saniyede bir sonucu sorgulayın
 3. `status: "completed"` geldiğinde `data.comments` dizisini okuyun
+
+Aynı akış `/api/profile` için de geçerlidir:
+1. `POST /api/profile` ile profil kazıma işlemini başlatın → `jobId` alırsınız
+2. `GET /api/profile/:jobId` ile sonucu sorgulayın
+3. `status: "completed"` geldiğinde `data.profile` nesnesini okuyun
 
 ### Yerel Geliştirme
 
@@ -403,6 +450,8 @@ facebook-scraper-node/
 │   ├── comments/
 │   │   ├── index.js        # POST /api/comments — işlem başlatma
 │   │   └── [jobId].js      # GET /api/comments/:jobId — sonuç sorgulama
+│   ├── profile/
+│   │   └── index.js        # POST /api/profile, GET /api/profile/:jobId
 │   └── server.js            # Yerel geliştirme sunucusu
 ├── lib/
 │   ├── scraper.js           # Puppeteer tabanlı çekirdek kazıma motoru
